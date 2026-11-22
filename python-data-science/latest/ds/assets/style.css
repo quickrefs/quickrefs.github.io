@@ -154,7 +154,9 @@ details.setup summary { cursor: pointer; }
 .ex-card { display: block; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; color: var(--ink); min-width: 0; }
 .ex-card:hover { border-color: var(--accent); text-decoration: none; }
 .ex-card .t { display: block; font-weight: 500; }
-.ex-card code { display: block; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex-card > code { display: block; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* the command line under the title */
+.ex-card .t code { font-weight: 600; font-size: .92em; }   /* code in the title stays in the line, in bold */
+.ex-card .t .n { font-size: 11.5px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 2px; }   /* the example number */
 .ex-card.non-examinable { border-style: dashed; }
 .sec-title { margin-bottom: 2px; }
 

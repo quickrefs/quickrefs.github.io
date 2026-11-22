@@ -308,7 +308,7 @@
       html += `<h2 class="sec-h"><a href="#/sec/${code}/${si}">${esc(sec.title)}</a></h2><div class="ex-list">`;
       for (const id of ids) {
         const e = T.examples[id];
-        html += `<a class="ex-card ${e.tags.map(tagClass).join(" ")} ${e.examinable ? "" : "non-examinable"}" href="#/ex/${id}"><span class="t">${et(e.title)}</span>${e.cmd ? `<code>${esc(e.cmd)}</code>` : ""}</a>`;
+        html += `<a class="ex-card ${e.tags.map(tagClass).join(" ")} ${e.examinable ? "" : "non-examinable"}" href="#/ex/${id}"><span class="t"><span class="n">${esc(e.sid)}</span> ${et(e.title)}</span>${e.cmd ? `<code>${esc(e.cmd)}</code>` : ""}</a>`;
       }
       html += "</div>";
     });
@@ -805,7 +805,10 @@
     const brand = document.querySelector(".brand");
     if (brand) {
       brand.outerHTML = `<span class="brand brand-switch"><a href="#/"><b>Quick Reference:</b></a> <select id="book-switch" aria-label="Choose a quick reference">${BOOKS.map(([k, n]) => `<option value="${k}"${k === SELF ? " selected" : ""}>${n}</option>`).join("")}</select></span>`;
-      document.getElementById("book-switch").addEventListener("change", (e) => window.parent.postMessage({ qr: "switch", book: e.target.value }, "*"));
+      document.getElementById("book-switch").addEventListener("change", (e) => {
+        window.parent.postMessage({ qr: "switch", book: e.target.value }, "*");
+        e.target.value = SELF;            // this frame is hidden now; it shows its own name when it comes back
+      });
     }
     document.addEventListener("click", (e) => {
       const a = e.target.closest("a.xref");
@@ -834,6 +837,12 @@
     });
     const report = () => window.parent.postMessage({ qr: "route", book: SELF, hash: location.hash }, "*");
     window.addEventListener("hashchange", report);
+    // the combined page keeps both books loaded: it asks this one to go to a place, or to say where it is
+    window.addEventListener("message", (e) => {
+      if (e.source !== window.parent || !e.data) return;
+      if (e.data.qr === "go" && typeof e.data.hash === "string") location.hash = e.data.hash;
+      else if (e.data.qr === "where") report();
+    });
     report();
   }
   onRoute();
