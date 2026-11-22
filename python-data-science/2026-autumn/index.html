@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quick Reference: Programming and Data Science with Python</title>
+<style>html, body { height: 100%; margin: 0; } iframe { border: 0; width: 100%; height: 100%; display: block; }</style>
+</head>
+<body>
+<iframe id="f" title="Quick reference"></iframe>
+<script>
+// One page, two quick references. Each book runs in the frame and tells this page where it is, so the address
+// shows the book and the example (#ds/B3.15) and a link to the other book switches the frame.
+const BOOKS = { py: "py/index.html", ds: "ds/index.html" };
+const TITLES = { py: "Programming with Python", ds: "Data Science with Python" };
+const f = document.getElementById("f");
+let current = "";
+function fromAddress() {
+  const [b, ...rest] = location.hash.replace(/^#\/?/, "").split("/");
+  if (BOOKS[b]) return [b, rest.join("/")];
+  let s = "py"; try { s = localStorage.getItem("qr-book") || "py"; } catch (e) {}
+  return [BOOKS[s] ? s : "py", ""];
+}
+function show(book, rest) {
+  current = book;
+  try { localStorage.setItem("qr-book", book); } catch (e) {}
+  document.title = "Quick Reference: " + TITLES[book];
+  f.src = BOOKS[book] + "#/" + rest;
+}
+window.addEventListener("message", (e) => {
+  if (e.source !== f.contentWindow || !e.data || !e.data.qr) return;
+  const m = e.data;
+  if (m.qr === "switch" && BOOKS[m.book]) show(m.book, "");
+  else if (m.qr === "open" && BOOKS[m.book]) show(m.book, m.id.includes(".") ? m.id : "sheet/" + m.id);
+  else if (m.qr === "version" && /^[\w.-]+$/.test(m.v)) location.href = "../" + m.v + "/index.html" + location.hash;   // released copies sit side by side (published/<name>/)
+  else if (m.qr === "route" && BOOKS[m.book]) {
+    current = m.book;
+    try { localStorage.setItem("qr-book", m.book); } catch (err) {}
+    document.title = "Quick Reference: " + TITLES[m.book];
+    history.replaceState(null, "", "#" + m.book + "/" + m.hash.replace(/^#\/?/, ""));
+  }
+});
+window.addEventListener("hashchange", () => { const [b, r] = fromAddress(); show(b, r); });
+{ const [b, r] = fromAddress(); show(b, r); }
+</script>
+</body>
+</html>
