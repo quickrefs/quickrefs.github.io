@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quick Reference: Programming and Data Science with Python</title>
+<style>html, body { height: 100%; margin: 0; } iframe { border: 0; width: 100%; height: 100%; display: block; } iframe[hidden] { display: none; }</style>
+</head>
+<body>
+<script>
+// One page, two quick references. Each book runs in its own frame and tells this page where it is, so the address
+// shows the book and the example (#ds/B3.15). Both frames stay loaded (the second one quietly, after the first),
+// so switching book only shows the other frame: it is instant, and each book keeps its place.
+const BOOKS = { py: "py/index.html", ds: "ds/index.html" };
+const TITLES = { py: "Programming with Python", ds: "Data Science with Python" };
+const frames = {};
+let current = "";
+function frame(book, rest) {           // the book's frame, made (and loaded at rest) the first time it is needed
+  if (!frames[book]) {
+    const f = document.createElement("iframe");
+    f.title = "Quick reference: " + TITLES[book];
+    f.hidden = book !== current;
+    f.src = BOOKS[book] + "#/" + (rest || "");
+    document.body.appendChild(f);
+    frames[book] = f;
+    return [f, true];
+  }
+  return [frames[book], false];
+}
+function fromAddress() {
+  const [b, ...rest] = location.hash.replace(/^#\/?/, "").split("/");
+  if (BOOKS[b]) return [b, rest.join("/")];
+  let s = "py"; try { s = localStorage.getItem("qr-book") || "py"; } catch (e) {}
+  return [BOOKS[s] ? s : "py", ""];
+}
+function setTitle(book) {
+  try { localStorage.setItem("qr-book", book); } catch (e) {}
+  document.title = "Quick Reference: " + TITLES[book];
+}
+// show a book at rest, a place in it ("" is its home page); keep = true leaves it where it is (the book switch)
+function show(book, rest, keep) {
+  current = book;
+  setTitle(book);
+  const [f, made] = frame(book, rest);
+  if (!made && !keep) f.contentWindow.postMessage({ qr: "go", hash: "#/" + rest }, "*");
+  for (const k in frames) frames[k].hidden = k !== book;
+  if (!made) f.contentWindow.postMessage({ qr: "where" }, "*");   // the address follows the book now shown
+}
+function preloadOther() {
+  for (const k in BOOKS) if (k !== current) frame(k, "");
+}
+window.addEventListener("message", (e) => {
+  const m = e.data;
+  if (!m || !m.qr) return;
+  const book = Object.keys(frames).find((k) => frames[k].contentWindow === e.source);
+  if (!book) return;
+  if (m.qr === "switch" && BOOKS[m.book]) show(m.book, "", true);
+  else if (m.qr === "open" && BOOKS[m.book]) show(m.book, m.id.includes(".") ? m.id : "sheet/" + m.id);
+  else if (m.qr === "version" && /^[\w.-]+$/.test(m.v)) location.href = "../" + m.v + "/index.html" + location.hash;   // released copies sit side by side (published/<collection>/<name>/)
+  else if (m.qr === "route" && book === current) {       // only the book on show sets the address
+    history.replaceState(null, "", "#" + book + "/" + m.hash.replace(/^#\/?/, ""));
+    if (!frames[book].dataset.ready) { frames[book].dataset.ready = "1"; setTimeout(preloadOther, 800); }
+  }
+});
+window.addEventListener("hashchange", () => { const [b, r] = fromAddress(); show(b, r); });
+{ const [b, r] = fromAddress(); show(b, r); }
+</script>
+</body>
+</html>

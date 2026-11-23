@@ -43,6 +43,13 @@
   const EXAM_LABELS = !document.documentElement.classList.contains("no-exam-labels");
   const nx = (t) => EXAM_LABELS ? t : String(t || "").replace(/\s*\(not examined\)/gi, "");   // drops "(not examined)" from text
   state.hideNon = EXAM_LABELS && store.get("tb-hidenon", "0") === "1";
+  if (!EXAM_LABELS) {                // also take "(not examined)" out of section names and sheet blurbs, wherever they are shown
+    for (const sh of Object.values(T.sheets)) {
+      sh.blurb = nx(sh.blurb);
+      for (const sec of sh.sections || []) sec.title = nx(sec.title);
+    }
+    for (const e of Object.values(T.examples)) if (e.section) e.section = nx(e.section);
+  }
   state.view = store.get("tb-view", "one") === "section" ? "section" : "one";
   state.showCmd = store.get("tb-showcmd", "1") === "1";
 
