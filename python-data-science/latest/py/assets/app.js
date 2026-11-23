@@ -38,7 +38,11 @@
     get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
   };
-  state.hideNon = store.get("tb-hidenon", "0") === "1";
+  // A published copy can leave out every "not examined" label (release.py marks it <html class="no-exam-labels">);
+  // the material is then shown like the rest, and the setting that hides it is off and not shown.
+  const EXAM_LABELS = !document.documentElement.classList.contains("no-exam-labels");
+  const nx = (t) => EXAM_LABELS ? t : String(t || "").replace(/\s*\(not examined\)/gi, "");   // drops "(not examined)" from text
+  state.hideNon = EXAM_LABELS && store.get("tb-hidenon", "0") === "1";
   state.view = store.get("tb-view", "one") === "section" ? "section" : "one";
   state.showCmd = store.get("tb-showcmd", "1") === "1";
 
@@ -299,16 +303,16 @@
         const sh = T.sheets[code];
         const cnt = Object.values(T.examples).filter((e) => e.sheet === code).length;
         html += `<a class="card" href="#/sheet/${code}"><div class="card-code">${code}</div><div class="card-title">${et(sh.title)}</div>
-          <div class="card-blurb">${esc(sh.blurb)}</div><div class="card-meta">${cnt} examples${sh.weeks ? " · week " + esc(sh.weeks) : ""}${sh.examinable ? "" : " · not examined"}</div></a>`;
+          <div class="card-blurb">${esc(nx(sh.blurb))}</div><div class="card-meta">${cnt} examples${sh.weeks ? " · week " + esc(sh.weeks) : ""}${sh.examinable ? "" : '<span class="exam-note"> · not examined</span>'}</div></a>`;
       }
       html += "</div>";
     }
     if (T.weeks && T.weeks.length) {
       html += `<h2>Route by week</h2><p class="lead">The sheets used in each week of the module.</p><div class="weeks">`;
       for (const w of T.weeks) {
-        html += `<div class="week-row"><div class="week-n">Week ${w.week}</div><div class="week-body"><b>${esc(w.topic)}</b>
+        html += `<div class="week-row"><div class="week-n">Week ${w.week}</div><div class="week-body"><b>${esc(nx(w.topic))}</b>
           <div class="week-sheets">${w.sheets.map((c) => `<a class="chip" href="#/sheet/${c}" title="${esc(T.sheets[c].title)}">${c} ${esc(T.sheets[c].short || T.sheets[c].title)}</a>`).join("")}</div>
-          <div class="week-note">${esc(w.note)}</div></div></div>`;
+          <div class="week-note">${esc(nx(w.note))}</div></div></div>`;
       }
       html += "</div>";
     }
@@ -343,7 +347,7 @@
   function viewSheet(code) {
     const sh = T.sheets[code];
     if (!sh) return notFound();
-    let html = `<div class="sheet-head">${head("", sheetLabel(code))}<p class="lead">${esc(sh.blurb)}</p>
+    let html = `<div class="sheet-head">${head("", sheetLabel(code))}<p class="lead">${esc(nx(sh.blurb))}</p>
       <div class="meta">${sh.weeks ? `<span>Week ${esc(sh.weeks)}</span>` : ""}${sh.examinable ? "" : '<span class="badge non">Whole sheet not examined</span>'}
       ${sh.book ? `<span>📖 ${esc(sh.book.split(",").map((c) => c.trim().replace(/^Ch/, "Chapter ")).join(", "))}</span>` : ""}
       ${sh.notebook ? `<a class="dl" href="${sh.notebook}" download>⬇ Download this sheet as a notebook</a>` : ""}</div></div>

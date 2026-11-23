@@ -37,12 +37,12 @@ function setTitle(book) {
   try { localStorage.setItem("qr-book", book); } catch (e) {}
   document.title = "Quick Reference: " + TITLES[book];
 }
-// show a book; rest is a place in it ("" keeps the place it is at)
-function show(book, rest) {
+// show a book at rest, a place in it ("" is its home page); keep = true leaves it where it is (the book switch)
+function show(book, rest, keep) {
   current = book;
   setTitle(book);
   const [f, made] = frame(book, rest);
-  if (!made && rest) f.contentWindow.postMessage({ qr: "go", hash: "#/" + rest }, "*");
+  if (!made && !keep) f.contentWindow.postMessage({ qr: "go", hash: "#/" + rest }, "*");
   for (const k in frames) frames[k].hidden = k !== book;
   if (!made) f.contentWindow.postMessage({ qr: "where" }, "*");   // the address follows the book now shown
 }
@@ -54,7 +54,7 @@ window.addEventListener("message", (e) => {
   if (!m || !m.qr) return;
   const book = Object.keys(frames).find((k) => frames[k].contentWindow === e.source);
   if (!book) return;
-  if (m.qr === "switch" && BOOKS[m.book]) show(m.book, "");
+  if (m.qr === "switch" && BOOKS[m.book]) show(m.book, "", true);
   else if (m.qr === "open" && BOOKS[m.book]) show(m.book, m.id.includes(".") ? m.id : "sheet/" + m.id);
   else if (m.qr === "version" && /^[\w.-]+$/.test(m.v)) location.href = "../" + m.v + "/index.html" + location.hash;   // released copies sit side by side (published/<collection>/<name>/)
   else if (m.qr === "route" && book === current) {       // only the book on show sets the address

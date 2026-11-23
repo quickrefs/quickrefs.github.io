@@ -603,3 +603,10 @@ pre.textblock { margin: 0; padding: 8px 12px; font-family: var(--mono); font-siz
   .navlink, .sec-link, .nav-ex, #nav a, .see, .chip, .sg-item { min-height: 28px; display: inline-flex; align-items: center; }
   .nav-ex, #nav a.nav-ex, .sg-item { display: flex; }
 }
+
+/* ---- published copy without "not examined" labels (release.py adds class="no-exam-labels" to <html>) ---- */
+.no-exam-labels .badge.non, .no-exam-labels .exam-note, .no-exam-labels .chip.g-status,
+.no-exam-labels .set-row:has(#hide-nonexam), .no-exam-labels .help-nonexam { display: none; }
+.no-exam-labels .example.non-examinable, .no-exam-labels .ex-card.non-examinable { border-style: solid; }
+.no-exam-labels .nav-ex.non-examinable .t::after, .no-exam-labels .idx-row.non-examinable .t::after,
+.no-exam-labels .idx-target.non-examinable::after { content: none; }

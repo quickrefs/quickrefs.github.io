@@ -38,7 +38,11 @@
     get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
   };
-  state.hideNon = store.get("tb-hidenon", "0") === "1";
+  // A published copy can leave out every "not examined" label (release.py marks it <html class="no-exam-labels">);
+  // the material is then shown like the rest, and the setting that hides it is off and not shown.
+  const EXAM_LABELS = !document.documentElement.classList.contains("no-exam-labels");
+  const nx = (t) => EXAM_LABELS ? t : String(t || "").replace(/\s*\(not examined\)/gi, "");   // drops "(not examined)" from text
+  state.hideNon = EXAM_LABELS && store.get("tb-hidenon", "0") === "1";
   state.view = store.get("tb-view", "one") === "section" ? "section" : "one";
   state.showCmd = store.get("tb-showcmd", "1") === "1";
 
@@ -257,7 +261,7 @@
         const sh = T.sheets[code];
         const cnt = Object.values(T.examples).filter((e) => e.sheet === code).length;
         html += `<a class="card" href="#/sheet/${code}"><div class="card-code">${code}</div><div class="card-title">${esc(sh.title)}</div>
-          <div class="card-blurb">${esc(sh.blurb)}</div><div class="card-meta">${cnt} examples${sh.weeks ? " · weeks " + esc(sh.weeks) : ""}${sh.examinable ? "" : " · not examined"}</div></a>`;
+          <div class="card-blurb">${esc(nx(sh.blurb))}</div><div class="card-meta">${cnt} examples${sh.weeks ? " · weeks " + esc(sh.weeks) : ""}${sh.examinable ? "" : '<span class="exam-note"> · not examined</span>'}</div></a>`;
       }
       html += "</div>";
     }
@@ -297,7 +301,7 @@
   function viewSheet(code) {
     const sh = T.sheets[code];
     if (!sh) return notFound();
-    let html = `<div class="sheet-head">${head("", sheetLabel(code))}<p class="lead">${esc(sh.blurb)}</p>
+    let html = `<div class="sheet-head">${head("", sheetLabel(code))}<p class="lead">${esc(nx(sh.blurb))}</p>
       <div class="meta">${sh.weeks ? `<span>Weeks ${esc(sh.weeks)}</span>` : ""}${sh.examinable ? "" : '<span class="badge non">Whole sheet not examined</span>'}
       <a class="dl" href="${sh.notebook}" download>⬇ Download this sheet as a notebook</a></div></div>
       ${xrefBox(sh.xref)}
