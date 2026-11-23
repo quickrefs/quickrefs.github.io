@@ -1,1 +1,1 @@
-window.QR_VERSIONS = [{"name": "2026-autumn.4", "date": "2026-11-23", "commit": "37be159"}, {"name": "2026-autumn.3", "date": "2026-11-23", "commit": "8ea0293"}, {"name": "2026-autumn.2", "date": "2026-11-23", "commit": "480e34c"}, {"name": "2026-autumn.1", "date": "2026-11-22", "commit": "03cb9d2"}, {"name": "2026-autumn", "date": "2026-11-22", "commit": "8e77b17"}];
+window.QR_VERSIONS = [{"name": "2026-autumn.4", "date": "2026-11-23", "commit": "37be159"}, {"name": "2026-autumn", "date": "2026-11-22", "commit": "8e77b17"}];
